@@ -1,13 +1,15 @@
 import tkinter as tk
 import random
+import sys
 import time
 
 class MazeApp(tk.Frame):
-    def __init__(self, width=400, height=300, master=None):
+    def __init__(self, width=400, height=300, t=0.025, master=None):
         super().__init__(master)
         self.master = master
         self.width = width
         self.height = height
+        self.t = t
         self.pack()
         self.create_widgets()
 
@@ -44,6 +46,8 @@ class MazeApp(tk.Frame):
         self.toggle(self.coords_to_index(x,y),red)
 
     def usable(self, x,y):
+        if self.coords_to_index(x,y) not in self.states:
+            return False
         if 0 in [x,y]:
             return False
         if self.width//10 - 2 == x or self.height//10 - 2 == y:
@@ -61,10 +65,10 @@ class MazeApp(tk.Frame):
         self.last = [self.position]
         while len(self.last) > 0:
             self.toggle_c(self.position[0], self.position[1], red=True)
-            options = [[opt[0]+self.position[0], opt[1]+self.position[1]] for opt in [[0,1],[1,0],[0,-1],[-1,0]]]
-            options = [opt for opt in options if self.usable(opt[0], opt[1]) and self.coords_to_index(opt[0],opt[1]) in self.states and opt not in self.filled and not self.states[self.coords_to_index(opt[0],opt[1])]]
+            options = [[[opt[0]+self.position[0], opt[1]+self.position[1]],[2*opt[0]+self.position[0], 2*opt[1]+self.position[1]]] for opt in [[0,1],[1,0],[0,-1],[-1,0]]]
+            options = [opt for opt in options if self.usable(opt[0][0], opt[0][1]) and self.usable(opt[1][0],opt[1][1]) and opt[0] not in self.filled and opt[1] not in self.filled and not self.states[self.coords_to_index(opt[0][0],opt[0][1])] and not self.states[self.coords_to_index(opt[1][0], opt[1][1])]]
             self.filled.append(self.position)
-            time.sleep(0.01)
+            time.sleep(self.t)
             self.canvas.update()
             self.toggle_c(self.position[0], self.position[1])
             if len(options) == 0:
@@ -73,9 +77,18 @@ class MazeApp(tk.Frame):
             else:
                 self.last = [self.position] + self.last
                 self.position = random.choice(options)
+                self.filled.append(self.position[0])
+                self.toggle_c(self.position[0][0], self.position[0][1], red=True)
+                time.sleep(self.t)
+                self.canvas.update()
+                self.toggle_c(self.position[0][0], self.position[0][1])
+                self.position = self.position[1]
+        time.sleep(5) 
+        sys.exit()
 
 if __name__ == "__main__":
     root = tk.Tk()
     app = MazeApp(master=root)
     app.master.after(0, app.walk)
     app.mainloop()
+
