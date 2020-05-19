@@ -83,10 +83,11 @@ class MazeApp(tk.Frame):
                 self.canvas.update()
                 self.toggle_c(self.position[0][0], self.position[0][1])
                 self.position = self.position[1]
-        time.sleep(5) 
-        sys.exit()
+        time.sleep(1) 
+        root.destroy()
 
 if __name__ == "__main__":
+    global root
     root = tk.Tk()
     app = MazeApp(master=root)
     app.master.after(0, app.walk)
